@@ -35,10 +35,17 @@ pipeline {
         stage('Provision Infrastructure (Terraform)') {
             steps {
                 echo "Applying Terraform configuration..."
-                // Inform Terraform where our GCP credentials exist
-                withEnv(['GOOGLE_APPLICATION_CREDENTIALS=C:\\Users\\Hrushikesh\\Desktop\\CICD\\cicd-mini-project-f4aeb7cffc9a.json']) {
+                // Inform Terraform where our GCP credentials exist and inject required variables
+                withEnv([
+                    'GOOGLE_APPLICATION_CREDENTIALS=C:\\Users\\Hrushikesh\\Desktop\\CICD\\cicd-mini-project-f4aeb7cffc9a.json',
+                    'TF_VAR_project_id=cicd-mini-project',
+                    'TF_VAR_region=asia-south1',
+                    'TF_VAR_bucket_name=cicd-mini'
+                ]) {
                     dir('terraform') {
                         bat 'terraform init'
+                        // Import bucket if it exists to avoid 409 conflict, suppress errors if already imported
+                        bat 'terraform import google_storage_bucket.artifacts %TF_VAR_bucket_name% || exit 0'
                         bat 'terraform apply -auto-approve'
                     }
                 }

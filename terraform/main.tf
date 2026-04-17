@@ -27,11 +27,3 @@ resource "google_storage_bucket" "artifacts" {
   }
 }
 
-# Added public read access for simplicity in the artifacts display (optional but handy)
-resource "google_storage_bucket_iam_binding" "public_read" {
-  bucket = google_storage_bucket.artifacts.name
-  role   = "roles/storage.objectViewer"
-  members = [
-    "allUsers",
-  ]
-}
