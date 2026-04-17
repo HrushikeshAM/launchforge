@@ -46,6 +46,33 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<a
       .populate('projectId')
       .sort({ createdAt: -1 });
       
+    // Auto-sync pending or running deployments with Jenkins
+    const syncPromises = deployments
+      .filter(dep => (dep.status === 'pending' || dep.status === 'running') && dep.buildNumber)
+      .map(async (dep) => {
+        try {
+          const statusInfo = await getBuildStatus(dep.buildNumber!);
+          let updated = false;
+          if (!statusInfo.building && statusInfo.result) {
+              dep.status = statusInfo.result === 'SUCCESS' ? 'success' : 'failed';
+              if (dep.status === 'success') {
+                dep.artifactUrl = `gs://${process.env.GCS_BUCKET_NAME}/${dep.buildNumber}.zip`;
+              }
+              updated = true;
+          } else if (statusInfo.building && dep.status !== 'running') {
+              dep.status = 'running';
+              updated = true;
+          }
+          if (updated) await dep.save();
+        } catch (e) {
+            // Ignore error for individual build sync so we still return deployments
+        }
+      });
+
+    if (syncPromises.length > 0) {
+      await Promise.all(syncPromises);
+    }
+      
     res.json(deployments);
   } catch (error: any) {
     res.status(500).json({ error: 'Server error' });

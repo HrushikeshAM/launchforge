@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import {
   AreaChart,
   Area,
@@ -9,49 +10,112 @@ import {
 } from 'recharts'
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card'
 import { Rocket, CheckCircle, XCircle, Activity } from 'lucide-react'
+import axios from 'axios'
 
-const data = [
-  { name: 'Mon', builds: 12, errors: 1 },
-  { name: 'Tue', builds: 19, errors: 2 },
-  { name: 'Wed', builds: 15, errors: 0 },
-  { name: 'Thu', builds: 26, errors: 4 },
-  { name: 'Fri', builds: 32, errors: 1 },
-  { name: 'Sat', builds: 10, errors: 0 },
-  { name: 'Sun', builds: 8, errors: 0 },
-]
+function timeSince(dateString: string) {
+  const date = new Date(dateString)
+  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000)
+  
+  let interval = seconds / 31536000
+  if (interval > 1) return Math.floor(interval) + "y ago"
+  interval = seconds / 2592000
+  if (interval > 1) return Math.floor(interval) + "m ago"
+  interval = seconds / 86400
+  if (interval > 1) return Math.floor(interval) + "d ago"
+  interval = seconds / 3600
+  if (interval > 1) return Math.floor(interval) + "h ago"
+  interval = seconds / 60
+  if (interval > 1) return Math.floor(interval) + "m ago"
+  return Math.floor(seconds) + "s ago"
+}
 
 export default function DashboardPage() {
+  const [loading, setLoading] = useState(true)
+  const [dashboardData, setDashboardData] = useState<any>({
+    stats: {
+      totalProjects: 0,
+      successfulDeploys: 0,
+      failedBuilds: 0,
+      activeEnvironments: 0
+    },
+    chartData: [],
+    recentActivity: []
+  })
+
+  useEffect(() => {
+    fetchDashboard()
+  }, [])
+
+  const fetchDashboard = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/dashboard", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      })
+      setDashboardData(res.data)
+    } catch (err) {
+      console.error("Failed to load dashboard metrics", err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
+          {[1,2,3,4].map(i => (
+            <Card key={i} className="bg-[#0f172a]/40 border-slate-800/60 animate-pulse">
+              <CardContent className="h-24"></CardContent>
+            </Card>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="lg:col-span-2 bg-[#0f172a]/40 border-slate-800/60 animate-pulse">
+             <CardContent className="h-[350px]"></CardContent>
+          </Card>
+          <Card className="bg-[#0f172a]/40 border-slate-800/60 animate-pulse">
+             <CardContent className="h-[350px]"></CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
+  const { stats, chartData, recentActivity } = dashboardData
+
+  const topStats = [
+    { title: "Total Projects", val: stats.totalProjects, icon: Rocket, color: "text-blue-500" },
+    { title: "Successful Deploys", val: stats.successfulDeploys, icon: CheckCircle, color: "text-emerald-500" },
+    { title: "Failed Builds", val: stats.failedBuilds, icon: XCircle, color: "text-rose-500" },
+    { title: "Active Environments", val: stats.activeEnvironments, icon: Activity, color: "text-purple-500" },
+  ]
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-6 animate-in fade-in duration-500">
       {/* Stats row */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {[
-          { title: "Total Projects", val: "12", icon: Rocket, color: "text-blue-500" },
-          { title: "Successful Deploys", val: "1,248", icon: CheckCircle, color: "text-emerald-500" },
-          { title: "Failed Builds", val: "23", icon: XCircle, color: "text-rose-500" },
-          { title: "Active Environments", val: "3", icon: Activity, color: "text-purple-500" },
-        ].map((stat, i) => (
-          <Card key={i} className="bg-[#0f172a]/40 border-slate-800/60">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
+        {topStats.map((stat, i) => (
+          <Card key={i} className="bg-[#0f172a]/40 border-slate-800/60 transition-colors hover:bg-[#0f172a]/60">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-slate-400">{stat.title}</CardTitle>
               <stat.icon className={`w-4 h-4 ${stat.color}`} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.val}</div>
+              <div className="text-2xl font-bold text-white">{stat.val}</div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="md:col-span-2 bg-[#0f172a]/40 border-slate-800/60">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+        <Card className="lg:col-span-2 bg-[#0f172a]/40 border-slate-800/60 flex flex-col">
           <CardHeader>
-            <CardTitle>Deployment Velocity</CardTitle>
+            <CardTitle className="text-slate-100">Deployment Velocity (Last 7 Days)</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="h-[300px] w-full">
+          <CardContent className="flex-1 min-h-[300px]">
+            <div className="h-full w-full">
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                <AreaChart data={data} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                <AreaChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorBuilds" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
@@ -79,24 +143,23 @@ export default function DashboardPage() {
 
         <Card className="bg-[#0f172a]/40 border-slate-800/60">
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+            <CardTitle className="text-slate-100">Recent Activity</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              {[
-                { time: "2m ago", text: "Deployed to production", env: "launchforge-ui" },
-                { time: "1h ago", text: "Build #124 passed", env: "payment-service" },
-                { time: "3h ago", text: "New environment created", env: "staging" },
-                { time: "5h ago", text: "Artifact uploaded", env: "auth-api-v2.zip" },
-              ].map((activity, i) => (
-                <div key={i} className="flex gap-4 items-start">
-                  <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
-                  <div>
-                    <div className="text-sm font-medium text-slate-200">{activity.text}</div>
-                    <div className="text-xs text-slate-500 mt-0.5">{activity.env} • {activity.time}</div>
+              {recentActivity.length === 0 ? (
+                <div className="text-slate-500 text-sm py-4 text-center">No recent operations detected.</div>
+              ) : (
+                recentActivity.map((activity: any, i: number) => (
+                  <div key={i} className="flex gap-4 items-start">
+                    <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-slate-200 truncate">{activity.text}</div>
+                      <div className="text-xs text-slate-500 mt-0.5 truncate">{activity.env} • {timeSince(activity.time)}</div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
