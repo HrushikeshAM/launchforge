@@ -28,10 +28,7 @@ export default function ArtifactsPage() {
   const handleDownload = async (filename: string) => {
     try {
       const token = localStorage.getItem("token")
-      // Quick way to download file in React: create link and click
-      window.location.href = `http://localhost:5000/artifacts/download/${filename}?token=${token}` // Ideally we fetch as blob but this is simplest
-      // Wait, standard JWT auth cannot be passed nicely in window.location.href without query param. 
-      // Alternative: fetch as Blob and trigger download
+      // Fetch as Blob and trigger download to cleanly pass JWT headers
       const response = await axios.get(`http://localhost:5000/artifacts/download/${encodeURIComponent(filename)}`, {
         headers: { Authorization: `Bearer ${token}` },
         responseType: 'blob'

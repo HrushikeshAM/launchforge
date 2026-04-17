@@ -10,7 +10,8 @@ export interface AuthRequest extends Request {
 }
 
 export const authenticate = (req: AuthRequest, res: Response, next: NextFunction) => {
-  const token = req.header('Authorization')?.replace('Bearer ', '');
+  // Support both standard Auth header and URL query parameters (for direct browser file downloads)
+  const token = req.header('Authorization')?.replace('Bearer ', '') || req.query.token as string;
 
   if (!token) {
     return res.status(401).json({ error: 'Access denied. No token provided.' });

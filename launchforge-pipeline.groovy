@@ -56,11 +56,10 @@ pipeline {
             steps {
                 echo "Building project ${env.PROJECT_NAME}..."
                 
-                bat 'echo Simulating production bundle compilation...'
-                // Sleep for 3 seconds using Jenkins native sleep
-                sleep time: 3, unit: 'SECONDS'
-                bat 'if not exist dist mkdir dist'
-                bat 'echo Production ready code for %PROJECT_NAME% > dist\\index.html'
+                dir('frontend') {
+                    bat 'npm install'
+                    bat 'npm run build'
+                }
                 
                 echo "Build successful!"
             }
@@ -71,8 +70,8 @@ pipeline {
                 echo "Packaging artifact..."
                 bat "if not exist ${ARTIFACT_DIR} mkdir ${ARTIFACT_DIR}"
                 
-                // Using PowerShell to zip on Windows natively since 'zip' isn't available
-                powershell "Compress-Archive -Path dist\\* -DestinationPath ${env.ARTIFACT_DIR}\\${env.BUILD_NUMBER}.zip -Force"
+                // Package the freshly compiled frontend dist directory
+                powershell "Compress-Archive -Path frontend\\dist\\* -DestinationPath ${env.ARTIFACT_DIR}\\${env.BUILD_NUMBER}.zip -Force"
             }
         }
 

@@ -23,8 +23,8 @@ export const listArtifacts = async () => {
         
         return files.map(file => ({
             name: file.name,
-            size: file.metadata.size,
-            updated: file.metadata.updated,
+            size: file.metadata?.size || file.size || "0",
+            updated: file.metadata?.updated || new Date().toISOString(),
             url: `https://storage.googleapis.com/${bucketName}/${file.name}`
         }));
     } catch (error: any) {
