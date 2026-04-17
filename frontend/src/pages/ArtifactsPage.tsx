@@ -32,7 +32,7 @@ export default function ArtifactsPage() {
       window.location.href = `http://localhost:5000/artifacts/download/${filename}?token=${token}` // Ideally we fetch as blob but this is simplest
       // Wait, standard JWT auth cannot be passed nicely in window.location.href without query param. 
       // Alternative: fetch as Blob and trigger download
-      const response = await axios.get(`http://localhost:5000/artifacts/download/${filename}`, {
+      const response = await axios.get(`http://localhost:5000/artifacts/download/${encodeURIComponent(filename)}`, {
         headers: { Authorization: `Bearer ${token}` },
         responseType: 'blob'
       });

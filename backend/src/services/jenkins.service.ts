@@ -62,7 +62,11 @@ export const getBuildStatus = async (buildNumber: number) => {
       duration: response.data.duration
     };
   } catch (error: any) {
-    console.error('Jenkins Status Error:', error.message);
+    if (error.response?.status === 404) {
+      // Build might be in queue and hasn't actually started execution yet
+      return { building: true, result: null, duration: 0 };
+    }
+    console.error('Jenkins Status Error:', error.response?.data || error.message);
     throw new Error(`Failed to fetch build status for #${buildNumber}`);
   }
 };
