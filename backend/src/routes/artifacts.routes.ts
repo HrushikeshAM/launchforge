@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import { AuthRequest, authenticate } from '../middlewares/auth';
-import { listArtifacts, getArtifactStream } from '../services/gcs.service';
+import { listArtifacts, getArtifactStream, deleteArtifact } from '../services/gcs.service';
 
 const router = Router();
 
@@ -32,6 +32,17 @@ router.get('/download/:filename', authenticate, async (req: AuthRequest, res: Re
     readStream.pipe(res);
   } catch (error: any) {
     res.status(500).json({ error: 'Server error downloading artifact' });
+  }
+});
+
+// Delete an artifact
+router.delete('/:filename', authenticate, async (req: AuthRequest, res: Response): Promise<any> => {
+  try {
+    const { filename } = req.params;
+    const result = await deleteArtifact(filename as string);
+    res.json(result);
+  } catch (error: any) {
+    res.status(500).json({ error: 'Failed to delete artifact' });
   }
 });
 

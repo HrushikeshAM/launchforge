@@ -21,12 +21,17 @@ export const listArtifacts = async () => {
         if (!storage) throw new Error("Storage client not initialized");
         const [files] = await storage.bucket(bucketName).getFiles();
         
-        return files.map(file => ({
-            name: file.name,
-            size: file.metadata?.size || "0",
-            updated: file.metadata?.updated || new Date().toISOString(),
-            url: `https://storage.googleapis.com/${bucketName}/${file.name}`
-        }));
+        // Sort by most recent first
+        const sorted = files
+            .map(file => ({
+                name: file.name,
+                size: file.metadata?.size || "0",
+                updated: file.metadata?.updated || new Date().toISOString(),
+                url: `https://storage.googleapis.com/${bucketName}/${file.name}`
+            }))
+            .sort((a, b) => new Date(b.updated).getTime() - new Date(a.updated).getTime());
+        
+        return sorted;
     } catch (error: any) {
         console.error('Error listing artifacts:', error);
         throw new Error('Failed to list artifacts');
@@ -38,4 +43,15 @@ export const getArtifactStream = (filename: string) => {
     const bucket = storage.bucket(bucketName);
     const file = bucket.file(filename);
     return file.createReadStream();
+};
+
+export const deleteArtifact = async (filename: string) => {
+    try {
+        if (!storage) throw new Error("Storage client not initialized");
+        await storage.bucket(bucketName).file(filename).delete();
+        return { success: true, message: `Deleted ${filename}` };
+    } catch (error: any) {
+        console.error('Error deleting artifact:', error);
+        throw new Error('Failed to delete artifact');
+    }
 };

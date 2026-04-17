@@ -71,7 +71,7 @@ pipeline {
                 bat "if not exist ${ARTIFACT_DIR} mkdir ${ARTIFACT_DIR}"
                 
                 // Package the freshly compiled frontend dist directory
-                powershell "Compress-Archive -Path frontend\\dist\\* -DestinationPath ${env.ARTIFACT_DIR}\\${env.BUILD_NUMBER}.zip -Force"
+                powershell "Compress-Archive -Path frontend\\dist\\* -DestinationPath ${env.ARTIFACT_DIR}\\${env.PROJECT_NAME}_${env.BUILD_NUMBER}.zip -Force"
             }
         }
 
@@ -81,8 +81,8 @@ pipeline {
                 // Force GCP authentication using your local Service Account keys
                 bat 'gcloud auth activate-service-account --key-file="C:\\Users\\Hrushikesh\\Desktop\\CICD\\cicd-mini-project-f4aeb7cffc9a.json"'
                 
-                bat "gsutil cp ${env.ARTIFACT_DIR}\\${env.BUILD_NUMBER}.zip gs://cicd-mini/${env.BUILD_NUMBER}.zip"
-                echo "Uploaded ${env.BUILD_NUMBER}.zip to gs://cicd-mini/ successfully."
+                bat "gsutil cp ${env.ARTIFACT_DIR}\\${env.PROJECT_NAME}_${env.BUILD_NUMBER}.zip gs://cicd-mini/${env.PROJECT_NAME}_${env.BUILD_NUMBER}.zip"
+                echo "Uploaded ${env.PROJECT_NAME}_${env.BUILD_NUMBER}.zip to gs://cicd-mini/ successfully."
             }
         }
     }
