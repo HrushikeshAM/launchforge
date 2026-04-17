@@ -6,7 +6,24 @@
 - Jenkins running locally on port `8080`
 - A Google Cloud Project with a Service Account `.json` key
 
-## 2. Infrastructure Setup (Optional but recommended)
+## 2. Target Repository Structure
+Because LaunchForge currently utilizes a standardized deployment pipeline, any GitHub repository connected to LaunchForge must follow a **Single-Project Root Structure**.
+
+Monorepos or highly nested architectures are not natively supported yet. Your connected GitHub repository should look like this:
+
+```text
+my-awesome-app/
+├── package.json
+├── package-lock.json
+├── src/
+│   ├── index.js
+│   └── ...
+├── .gitignore
+└── README.md
+```
+The Jenkins pipeline implicitly expects the primary source code executable (like `package.json` or equivalent) to be located at the strict root of the repository.
+
+## 3. Infrastructure Setup (Optional but recommended)
 Navigate to the `terraform/` directory:
 ```bash
 cd terraform
@@ -15,48 +32,25 @@ terraform plan -var="project_id=YOUR_PROJECT_ID" -var="bucket_name=YOUR_BUCKET_N
 terraform apply -var="project_id=YOUR_PROJECT_ID" -var="bucket_name=YOUR_BUCKET_NAME"
 ```
 
-## 3. Jenkins Preparation
+## 4. Jenkins Preparation
 1. Ensure Jenkins is accessible at `http://localhost:8080`.
 2. Create a parameterized pipeline job named `launchforge-pipeline`.
 3. Give it three string parameters: `REPO_URL`, `BRANCH`, `PROJECT_NAME`.
 4. Generate an API token for your Jenkins user.
 
-## 4. Environment Variables
-In the root of the project, ensure you have a `.env` file patterned from the provided `.env`:
+## 5. Environment Variables & First Run
+You no longer need to manually copy environment variables!
 
-```env
-# App
-PORT=5000
-NODE_ENV=development
-
-# MongoDB
-MONGO_URI=mongodb://localhost:27017/launchforge
-
-# Google Cloud
-GCP_PROJECT_ID=cicd-mini-project
-GCS_BUCKET_NAME=cicd-mini
-GOOGLE_APPLICATION_CREDENTIALS=C:\Users\Hrushikesh\Desktop\CICD\cicd-mini-project-...json
-
-# Jenkins
-JENKINS_URL=http://localhost:8080
-JENKINS_USER=hrushi
-JENKINS_API_TOKEN=your_token_here
-JENKINS_JOB_NAME=launchforge-pipeline
+**For Windows:**
+Simply run the included batch script:
+```bat
+start.bat
 ```
 
-## 5. Running the Backend
+**For macOS/Linux:**
 ```bash
-cd backend
-npm install
-npm run build
+npm run install:all
 npm run dev
 ```
-The API server will listen on port 5000.
 
-## 6. Running the Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-```
-The React development server will start, usually on port 5173. Open that in your browser!
+LaunchForge will natively boot up its Setup Wizard at `http://localhost:5173/`, dynamically scaffold your `.env` securely to disk, and gracefully connect your local services together!

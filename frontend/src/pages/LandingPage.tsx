@@ -1,7 +1,7 @@
 import { motion } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 import { Button } from "../components/ui/button"
-import { Rocket, Cloud, ShieldCheck, Terminal } from "lucide-react"
+import { Rocket, Cloud, Terminal } from "lucide-react"
 
 export default function LandingPage() {
   const navigate = useNavigate()
@@ -28,7 +28,7 @@ export default function LandingPage() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-blue-600/20 blur-[120px] rounded-full pointer-events-none" />
         <div className="absolute top-1/4 left-1/4 w-[400px] h-[300px] bg-purple-600/20 blur-[100px] rounded-full pointer-events-none" />
 
-        <motion.h1 
+        <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
@@ -39,18 +39,18 @@ export default function LandingPage() {
             at lightspeed.
           </span>
         </motion.h1>
-        
-        <motion.p 
+
+        <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
           className="text-xl md:text-2xl text-slate-400 max-w-3xl mx-auto mb-12"
         >
-          The elite deployment platform integrating GitHub, Jenkins, and GCP. 
+          The elite deployment platform integrating GitHub, Jenkins, and GCP.
           Stop configuring pipelines and start launching products.
         </motion.p>
 
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
@@ -71,7 +71,7 @@ export default function LandingPage() {
             { title: "GCP Artifact Storage", description: "Secure, durable, and highly available storage for your build artifacts.", icon: <Cloud className="w-8 h-8 text-purple-400 mb-4" /> },
             { title: "Jenkins Orchestration", description: "Seamlessly interact with Jenkins without touching XML or Groovy.", icon: <Terminal className="w-8 h-8 text-indigo-400 mb-4" /> }
           ].map((feature, i) => (
-            <motion.div 
+            <motion.div
               key={i}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
